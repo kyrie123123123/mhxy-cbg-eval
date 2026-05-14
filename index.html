@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>梦幻西游藏宝阁角色性价比评估</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        surface: '#1e1e2e',
+                        card: '#2a2a3e',
+                        muted: '#a0a0b8',
+                        gold: '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #1a1a2e; color: #e0e0e0; }
+        input[type=number], input[type=range] { accent-color: #6366f1; }
+        input[type=number] {
+            background: #2a2a3e; border: 1px solid #3a3a52; color: #e0e0e0;
+            border-radius: 0.5rem; padding: 0.5rem 0.75rem; width: 100%;
+            transition: border-color 0.2s;
+        }
+        input[type=number]:focus {
+            outline: none; border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+        }
+        select {
+            background: #2a2a3e; border: 1px solid #3a3a52; color: #e0e0e0;
+            border-radius: 0.5rem; padding: 0.5rem 0.75rem; width: 100%;
+            transition: border-color 0.2s;
+        }
+        select:focus {
+            outline: none; border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+        }
+        .score-green  { background: linear-gradient(135deg, #059669, #10b981); }
+        .score-yellow { background: linear-gradient(135deg, #d97706, #f59e0b); }
+        .score-red    { background: linear-gradient(135deg, #dc2626, #ef4444); }
+        .section-card { background: #2a2a3e; border-radius: 1rem; padding: 1.5rem; border: 1px solid #3a3a52; }
+        .section-title { font-size: 0.875rem; font-weight: 600; color: #6366f1; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+        input[type=range] { width: 100%; height: 6px; border-radius: 3px; background: #3a3a52; outline: none; }
+        input[type=range]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #6366f1; cursor: pointer; }
+        .toggle-box { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+        .toggle-box input[type=checkbox] { display: none; }
+        .toggle-indicator {
+            width: 20px; height: 20px; border-radius: 0.3rem; border: 2px solid #3a3a52;
+            background: #2a2a3e; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; flex-shrink: 0;
+        }
+        .toggle-box input[type=checkbox]:checked + .toggle-indicator {
+            background: #6366f1; border-color: #6366f1;
+        }
+        .toggle-indicator::after {
+            content: '✓'; color: white; font-size: 12px; font-weight: bold;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .toggle-box input[type=checkbox]:checked + .toggle-indicator::after { opacity: 1; }
+    </style>
+</head>
+<body class="min-h-screen py-6 px-4">
+    <div class="max-w-4xl mx-auto">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">
+                <span class="text-primary">梦幻西游</span> 藏宝阁角色性价比评估
+            </h1>
+            <p class="text-muted text-sm">将所有修炼和技能折算为梦幻币，再按汇率折算为人民币，计算底子总值与性价比</p>
+        </header>
+
+        <!-- Main grid: form + results -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- ========== LEFT: Form ========== -->
+            <div class="space-y-5">
+
+                <!-- 基础信息 -->
+                <div class="section-card">
+                    <div class="section-title">基础信息</div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm text-muted mb-1">角色等级组</label>
+                            <select id="levelGroup" onchange="onLevelChange()">
+                                <option value="109" selected>109 级 (神威)</option>
+                                <option value="129">129 级 (天科)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-muted mb-1">挂牌售价 (元)</label>
+                            <input type="number" id="accountPrice" placeholder="例如：5000" value="5000" min="0" step="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 师门技能 -->
+                <div class="section-card">
+                    <div class="section-title">师门技能</div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm text-muted mb-1">
+                                主技能等级 <span class="text-xs text-primary" id="skillMaxLabel">(上限 119)</span>
+                            </label>
+                            <input type="number" id="skillLevel" placeholder="119" value="119" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-muted mb-1">达到等级上限的技能数量</label>
+                            <select id="skillsAtCap">
+                                <option value="0">0 个</option>
+                                <option value="1">1 个</option>
+                                <option value="2">2 个</option>
+                                <option value="3">3 个</option>
+                                <option value="4">4 个</option>
+                                <option value="5">5 个</option>
+                                <option value="6" selected>6 个</option>
+                                <option value="7">7 个</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 人物修炼 -->
+                <div class="section-card">
+                    <div class="section-title">
+                        人物修炼 <span class="text-xs text-muted" id="charCultMaxLabel">(上限 17)</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs text-muted mb-1">攻修 / 法修</label>
+                            <input type="number" id="charAtk" value="17" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-muted mb-1">防修</label>
+                            <input type="number" id="charDef" value="17" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-muted mb-1">抗法</label>
+                            <input type="number" id="charMDef" value="17" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 宠物修炼 -->
+                <div class="section-card">
+                    <div class="section-title">
+                        宠物修炼 <span class="text-xs text-muted" id="petCultMaxLabel">(上限 17)</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-xs text-muted mb-1">攻修</label>
+                            <input type="number" id="petAtk" value="10" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-muted mb-1">防修</label>
+                            <input type="number" id="petDef" value="10" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-muted mb-1">法修</label>
+                            <input type="number" id="petMAtk" value="10" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-muted mb-1">抗法</label>
+                            <input type="number" id="petMDef" value="10" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 辅助技能 (6项, 0-140) -->
+                <div class="section-card">
+                    <div class="section-title">辅助技能 <span class="text-xs text-muted">(0-140 每项满级 = 2000万 MHB)</span></div>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-muted w-16 shrink-0">强身</label>
+                            <input type="range" id="qiangShen" min="0" max="140" value="120" oninput="updateSlider(this, 'qiangShenVal')">
+                            <span class="text-sm text-white w-10 text-right" id="qiangShenVal">120</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-muted w-16 shrink-0">冥想</label>
+                            <input type="range" id="mingXiang" min="0" max="140" value="100" oninput="updateSlider(this, 'mingXiangVal')">
+                            <span class="text-sm text-white w-10 text-right" id="mingXiangVal">100</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-muted w-16 shrink-0">炼药</label>
+                            <input type="range" id="lianYao" min="0" max="140" value="80" oninput="updateSlider(this, 'lianYaoVal')">
+                            <span class="text-sm text-white w-10 text-right" id="lianYaoVal">80</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-muted w-16 shrink-0">烹饪</label>
+                            <input type="range" id="pengRen" min="0" max="140" value="80" oninput="updateSlider(this, 'pengRenVal')">
+                            <span class="text-sm text-white w-10 text-right" id="pengRenVal">80</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-muted w-16 shrink-0">养生</label>
+                            <input type="range" id="yangSheng" min="0" max="140" value="60" oninput="updateSlider(this, 'yangShengVal')">
+                            <span class="text-sm text-white w-10 text-right" id="yangShengVal">60</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-muted w-16 shrink-0">健身</label>
+                            <input type="range" id="jianShen" min="0" max="140" value="60" oninput="updateSlider(this, 'jianShenVal')">
+                            <span class="text-sm text-white w-10 text-right" id="jianShenVal">60</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 乾元丹 + 潜能果 + 月饼粽子机缘 -->
+                <div class="section-card">
+                    <div class="section-title">其他</div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs text-muted mb-1">乾元丹 (0-9)</label>
+                            <input type="number" id="qianYuanDan" value="4" min="0" max="9">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-muted mb-1">
+                                潜能果 <span class="text-primary" id="qngMaxLabel">(上限 100)</span>
+                            </label>
+                            <input type="number" id="qianNengGuo" value="50" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-muted mb-1">月饼粽子机缘 (0-60)</label>
+                            <input type="number" id="jiYuan" value="30" min="0" max="60">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculate Button -->
+                <button onclick="calculate()" class="w-full py-3 bg-primary hover:bg-indigo-500 text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/25 active:scale-[0.98] text-lg">
+                    计算底子与性价比
+                </button>
+            </div>
+
+            <!-- ========== RIGHT: Results ========== -->
+            <div class="space-y-5">
+                <!-- Exchange Rate Config -->
+                <div class="section-card">
+                    <div class="section-title">汇率配置</div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <label class="block text-xs text-muted mb-1">梦幻币 (万)</label>
+                            <input type="number" id="mhbAmount" value="3000" min="1" oninput="updateExchangeRate()">
+                        </div>
+                        <div class="text-muted pt-5">=</div>
+                        <div class="flex-1">
+                            <label class="block text-xs text-muted mb-1">人民币 (元)</label>
+                            <input type="number" id="rmbAmount" value="240" min="1" oninput="updateExchangeRate()">
+                        </div>
+                    </div>
+                    <div class="text-xs text-muted mt-2" id="exchangeRateDisplay">当前汇率：1元 = 12.5 万MHB</div>
+                </div>
+
+                <!-- Results Card -->
+                <div class="section-card" id="resultsCard" style="display:none;">
+                    <div class="section-title">评估结果</div>
+
+                    <!-- 底子总值 -->
+                    <div class="text-center mb-4">
+                        <div class="text-sm text-muted mb-1">底子总值</div>
+                        <div class="text-3xl font-bold text-white" id="baseValueRMB">--</div>
+                        <div class="text-xs text-muted mt-1" id="baseValueMHB">--</div>
+                    </div>
+
+                    <!-- 性价比比值 -->
+                    <div class="text-center mb-4">
+                        <div class="text-sm text-muted mb-1">性价比比值（底子 / 售价）</div>
+                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full text-3xl font-bold text-white" id="ratioCircle">--</div>
+                        <div class="text-xs mt-1" id="ratioLabel">--</div>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="border-gray-700 my-4">
+
+                    <!-- 价值明细 -->
+                    <div class="text-sm text-muted mb-3">底子价值明细（万 MHB）</div>
+                    <div class="space-y-1.5 text-sm" id="breakdown"></div>
+                </div>
+
+                <!-- Placeholder -->
+                <div class="section-card text-center" id="placeholderCard">
+                    <div class="text-muted text-sm mb-2">👈 填写角色数据后点击计算</div>
+                    <div class="text-xs text-gray-600">系统将自动折算为梦幻币总值与人民币底子估值</div>
+                </div>
+
+                <!-- DeepSeek Card -->
+                <div class="section-card">
+                    <div class="section-title">AI 深度评估 (DeepSeek)</div>
+                    <p class="text-xs text-muted mb-3">接入 DeepSeek API 获取更全面的角色评估，包括市场趋势、装备匹配度等</p>
+                    <button onclick="analyzeWithDeepSeek()" class="w-full py-2 bg-gray-700 hover:bg-gray-600 text-muted hover:text-white rounded-lg transition-all duration-200 text-sm" id="deepseekBtn">
+                        🤖 启动 AI 分析 (需配置 API Key)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-8 text-xs text-gray-600">
+            本工具仅供估价参考，实际价格受市场供需、装备、锦衣等多因素影响 &nbsp;|&nbsp; 汇率可根据所在区服自行调整
+        </footer>
+    </div>
+
+    <script>
+        // ============ LEVEL PRESETS ============
+        const levelConfig = {
+            109: { skillMax: 119, cultMax: 17, petMax: 17, qngMax: 100, skillTotalCost: 1284 },
+            129: { skillMax: 150, cultMax: 21, petMax: 25, qngMax: 100, skillTotalCost: 3864 },
+        };
+
+        // ============ SLIDER HELPER ============
+        function updateSlider(slider, labelId) {
+            document.getElementById(labelId).textContent = slider.value;
+        }
+
+        // ============ LEVEL CHANGE ============
+        function onLevelChange() {
+            const lv = document.getElementById('levelGroup').value;
+            const cfg = levelConfig[lv];
+            document.getElementById('skillMaxLabel').textContent = `(上限 ${cfg.skillMax})`;
+            document.getElementById('charCultMaxLabel').textContent = `(上限 ${cfg.cultMax})`;
+            document.getElementById('petCultMaxLabel').textContent = `(上限 ${cfg.petMax})`;
+            document.getElementById('qngMaxLabel').textContent = `(上限 ${cfg.qngMax})`;
+            document.getElementById('qianNengGuo').max = cfg.qngMax;
+            document.getElementById('skillLevel').value = cfg.skillMax;
+            document.getElementById('charAtk').value = cfg.cultMax;
+            document.getElementById('charDef').value = cfg.cultMax;
+            document.getElementById('charMDef').value = cfg.cultMax;
+        }
+
+        // ============ EXCHANGE RATE ============
+        let exchangeRate = 12.5;
+
+        function updateExchangeRate() {
+            const mhb = parseFloat(document.getElementById('mhbAmount').value) || 3000;
+            const rmb = parseFloat(document.getElementById('rmbAmount').value) || 240;
+            exchangeRate = mhb / rmb;
+            document.getElementById('exchangeRateDisplay').textContent =
+                `当前汇率：1元 = ${exchangeRate.toFixed(2)} 万MHB  (${mhb}万 = ${rmb}元)`;
+        }
+
+        // ============ MHB COST CALCULATIONS ============
+
+        /** Character cultivation exp: exp_to_next = (n² + n*3 + 11) * 10; summed from 0 to level-1 */
+        function calcCultivationTotalExp(level) {
+            if (level <= 0) return 0;
+            let total = 0;
+            for (let n = 0; n < level; n++) { total += (n * n + n * 3 + 11) * 10; }
+            return total;
+        }
+
+        /** Character attack cultivation cost (万 MHB): 3000两/exp → /10000 = 0.3万 per exp */
+        function calcCharAtkCost(level) {
+            return calcCultivationTotalExp(level) * 0.3;
+        }
+
+        /** Character defense cultivation cost (万 MHB): 2000两/exp → /10000 = 0.2万 per exp */
+        function calcCharDefCost(level) {
+            return calcCultivationTotalExp(level) * 0.2;
+        }
+
+        /** Pet cultivation: exp from N to N+1 = N²*10 + N*30 + 110; 80万/修炼果, 150exp/果 */
+        function calcPetCultTotalExp(level) {
+            if (level <= 0) return 0;
+            let total = 0;
+            for (let n = 0; n < level; n++) { total += n * n * 10 + n * 30 + 110; }
+            return total;
+        }
+        function calcPetCultCost(level) {
+            return (calcPetCultTotalExp(level) / 150) * 80;
+        }
+
+        /** Single school skill cost (万 MHB): scaled quadratically to match level-group target total */
+        function calcSingleSkillCost(level, levelGroup) {
+            if (level <= 0) return 0;
+            const cfg = levelConfig[levelGroup];
+            const maxLevel = cfg.skillMax;
+            const targetTotal = cfg.skillTotalCost;
+            // Σ n² for current level / Σ n² for max level, scaled to target total
+            let sumSqCurrent = 0, sumSqMax = 0;
+            for (let n = 1; n <= level; n++) { sumSqCurrent += n * n; }
+            for (let n = 1; n <= maxLevel; n++) { sumSqMax += n * n; }
+            return (sumSqCurrent / sumSqMax) * targetTotal;
+        }
+
+        /** Living skill cost: linear to 2000万 at level 140; 0 if below level 80 */
+        function calcLivingSkillCost(level) {
+            if (level < 80) return 0;
+            return (level / 140) * 2000;
+        }
+
+        /** 乾元丹 cost (万 MHB): Σ n² * 150 */
+        function calcQianYuanDanCost(count) {
+            if (count <= 0) return 0;
+            let total = 0;
+            for (let n = 1; n <= count; n++) { total += n * n * 150; }
+            return total;
+        }
+
+        // ============ CLAMP ============
+        function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+
+        // ============ MAIN CALCULATION ============
+        function calculate() {
+            const levelGroup = document.getElementById('levelGroup').value;
+            const cfg = levelConfig[levelGroup];
+            const accountPrice = parseFloat(document.getElementById('accountPrice').value) || 0;
+
+            // Read all inputs
+            const skillLevel  = parseInt(document.getElementById('skillLevel').value) || 0;
+            const skillsAtCap = parseInt(document.getElementById('skillsAtCap').value) || 0;
+            const charAtk     = parseInt(document.getElementById('charAtk').value) || 0;
+            const charDef     = parseInt(document.getElementById('charDef').value) || 0;
+            const charMDef    = parseInt(document.getElementById('charMDef').value) || 0;
+            const petAtk      = parseInt(document.getElementById('petAtk').value) || 0;
+            const petDef      = parseInt(document.getElementById('petDef').value) || 0;
+            const petMAtk     = parseInt(document.getElementById('petMAtk').value) || 0;
+            const petMDef     = parseInt(document.getElementById('petMDef').value) || 0;
+            const qs           = parseInt(document.getElementById('qiangShen').value) || 0;
+            const mx           = parseInt(document.getElementById('mingXiang').value) || 0;
+            const ly           = parseInt(document.getElementById('lianYao').value) || 0;
+            const pr           = parseInt(document.getElementById('pengRen').value) || 0;
+            const ys           = parseInt(document.getElementById('yangSheng').value) || 0;
+            const js           = parseInt(document.getElementById('jianShen').value) || 0;
+            const qyd          = parseInt(document.getElementById('qianYuanDan').value) || 0;
+            const qng          = parseInt(document.getElementById('qianNengGuo').value) || 0;
+            const jiYuan       = parseInt(document.getElementById('jiYuan').value) || 0;
+
+            // ============ MHB COSTS (万 MHB) ============
+            const costSkill    = calcSingleSkillCost(skillLevel, levelGroup) * Math.max(skillsAtCap, 1) / 2;
+            const costCharAtk  = calcCharAtkCost(charAtk) / 2;
+            const costCharDef  = calcCharDefCost(charDef) / 2;
+            const costCharMDef = calcCharDefCost(charMDef) / 2;
+            const costPetAtk   = calcPetCultCost(petAtk);
+            const costPetDef   = calcPetCultCost(petDef);
+            const costPetMAtk  = calcPetCultCost(petMAtk);
+            const costPetMDef  = calcPetCultCost(petMDef);
+            const costQS       = calcLivingSkillCost(qs);
+            const costMX       = calcLivingSkillCost(mx);
+            const costLY       = calcLivingSkillCost(ly);
+            const costPR       = calcLivingSkillCost(pr);
+            const costYS       = calcLivingSkillCost(ys);
+            const costJS       = calcLivingSkillCost(js);
+            const costJY       = jiYuan * 100;
+
+            // Total MHB
+            const totalMHB = costSkill + costCharAtk + costCharDef + costCharMDef
+                           + costPetAtk + costPetDef + costPetMAtk + costPetMDef
+                           + costQS + costMX + costLY + costPR + costYS + costJS
+                           + costJY;
+
+            // Convert to RMB
+            const baseValueRMB = totalMHB / exchangeRate;
+
+            // 性价比比值 = 底子 / 售价
+            const ratio = accountPrice > 0 ? baseValueRMB / accountPrice : 0;
+
+            // Determine ratio tier
+            let ratioClass, ratioText;
+            if (ratio >= 1.2) {
+                ratioClass = 'score-green';
+                ratioText = '超值 — 底子价值远超售价，推荐购买';
+            } else if (ratio >= 0.8) {
+                ratioClass = 'score-yellow';
+                ratioText = '合理 — 底子价值与售价基本匹配';
+            } else {
+                ratioClass = 'score-red';
+                ratioText = '溢价 — 售价显著高于底子价值，需谨慎';
+            }
+
+            // ============ DISPLAY ============
+            document.getElementById('resultsCard').style.display = 'block';
+            document.getElementById('placeholderCard').style.display = 'none';
+
+            document.getElementById('baseValueRMB').textContent = '¥ ' + baseValueRMB.toLocaleString('zh-CN', { maximumFractionDigits: 0 });
+            document.getElementById('baseValueMHB').textContent = '≈ ' + totalMHB.toLocaleString('zh-CN', { maximumFractionDigits: 0 }) + ' 万MHB';
+
+            const ratioCircle = document.getElementById('ratioCircle');
+            ratioCircle.textContent = ratio.toFixed(2);
+            ratioCircle.className = 'inline-flex items-center justify-center w-24 h-24 rounded-full text-3xl font-bold text-white ' + ratioClass;
+
+            const ratioLabel = document.getElementById('ratioLabel');
+            ratioLabel.textContent = ratioText;
+            ratioLabel.className = ratio >= 1.2 ? 'text-xs text-green-400 font-semibold'
+                : ratio >= 0.8 ? 'text-xs text-yellow-400 font-semibold' : 'text-xs text-red-400 font-semibold';
+
+            // Breakdown items
+            const breakdownItems = [
+                { label: '师门技能', cost: costSkill },
+                { label: '人物攻修/法修', cost: costCharAtk },
+                { label: '人物防修', cost: costCharDef },
+                { label: '人物抗法', cost: costCharMDef },
+                { label: '宠物攻修', cost: costPetAtk },
+                { label: '宠物防修', cost: costPetDef },
+                { label: '宠物法修', cost: costPetMAtk },
+                { label: '宠物抗法', cost: costPetMDef },
+                { label: '强身', cost: costQS },
+                { label: '冥想', cost: costMX },
+                { label: '炼药', cost: costLY },
+                { label: '烹饪', cost: costPR },
+                { label: '养生之道', cost: costYS },
+                { label: '健身术', cost: costJS },
+                { label: '月饼粽子机缘', cost: costJY },
+            ];
+
+            document.getElementById('breakdown').innerHTML = breakdownItems
+                .map(item => `
+                    <div class="flex justify-between py-1 border-b border-gray-800 last:border-0">
+                        <span class="text-muted">${item.label}</span>
+                        <span class="text-white font-mono">${item.cost.toLocaleString('zh-CN', { maximumFractionDigits: 0 })} 万</span>
+                    </div>
+                `).join('');
+
+            // Store for DeepSeek
+            window._lastCalcData = {
+                levelGroup, accountPrice,
+                skillLevel, skillsAtCap,
+                charAtk, charDef, charMDef,
+                petAtk, petDef, petMAtk, petMDef,
+                qs, mx, ly, pr, ys, js,
+                qyd, qng, jiYuan,
+                totalMHB, baseValueRMB, ratio,
+                breakdownItems
+            };
+        }
+
+        // ============ DEEPSEEK PLACEHOLDER ============
+        /**
+         * analyzeWithDeepSeek() — 接入 DeepSeek API 进行深度评估
+         *
+         * 使用前请替换 DEEPSEEK_API_KEY 并取消注释 fetch 调用代码。
+         * API 文档: https://api.deepseek.com/v1/chat/completions
+         */
+        async function analyzeWithDeepSeek() {
+            const data = window._lastCalcData;
+
+            if (!data) {
+                alert('请先点击"计算底子与性价比"按钮，完成基础评估后再使用 AI 分析。');
+                return;
+            }
+
+            const DEEPSEEK_API_KEY = '';
+
+            if (!DEEPSEEK_API_KEY) {
+                const proceed = confirm(
+                    '⚠️ 尚未配置 DeepSeek API Key。\n\n' +
+                    '配置步骤：\n' +
+                    '1. 前往 platform.deepseek.com 获取 API Key\n' +
+                    '2. 在代码中搜索 DEEPSEEK_API_KEY 并替换\n' +
+                    '3. 取消注释下方的 fetch 调用代码\n\n' +
+                    '当前将使用模拟数据演示。是否继续？'
+                );
+                if (!proceed) return;
+
+                const btn = document.getElementById('deepseekBtn');
+                btn.disabled = true;
+                btn.textContent = '⏳ 分析中...';
+                await new Promise(r => setTimeout(r, 1500));
+                btn.disabled = false;
+                btn.textContent = '🤖 启动 AI 分析 (需配置 API Key)';
+
+                const tier = data.ratio >= 1.2 ? '超值' : data.ratio >= 0.8 ? '合理' : '溢价';
+                alert(
+                    '【DeepSeek 模拟分析结果】\n\n' +
+                    `角色等级: ${data.levelGroup} 级\n` +
+                    `底子总值: ¥${data.baseValueRMB.toFixed(0)} (${data.totalMHB.toFixed(0)} 万MHB)\n` +
+                    `性价比比值: ${data.ratio.toFixed(2)} (${tier})\n\n` +
+                    '💡 ' + (data.ratio >= 1.2
+                        ? '该角色底子估值高于售价，性价比较高，建议关注装备和宝宝是否匹配。'
+                        : data.ratio >= 0.8
+                            ? '价格与底子价值基本匹配，可视装备情况适当还价。'
+                            : '售价明显高于底子价值，除非附带高价值装备或限量锦衣，否则不建议入手。') +
+                    '\n\n实际使用时请接入 DeepSeek API 以获得更详细的分析。'
+                );
+                return;
+            }
+
+            // === 真实 API 调用 (取消下方注释以启用) ===
+            /*
+            const btn = document.getElementById('deepseekBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ AI 分析中...';
+
+            try {
+                const itemsSummary = data.breakdownItems.map(i =>
+                    `${i.label}: ${i.cost.toFixed(0)}万`
+                ).join(', ');
+
+                const prompt = `请评估这个梦幻西游${data.levelGroup}级角色的性价比：
+                售价: ${data.accountPrice}元
+                底子总值: ¥${data.baseValueRMB.toFixed(0)} (${data.totalMHB.toFixed(0)} 万MHB)
+                性价比比值: ${data.ratio.toFixed(2)}
+                各分项估值: ${itemsSummary}
+                修炼: 攻/法${data.charAtk}, 防${data.charDef}, 抗法${data.charMDef}
+                宠修: 攻${data.petAtk}, 防${data.petDef}, 法${data.petMAtk}, 抗法${data.petMDef}
+                技能: ${data.skillLevel}级 × ${data.skillsAtCap}个
+                辅助: 强身${data.qs} 冥想${data.mx} 炼药${data.ly} 烹饪${data.pr} 养生${data.ys} 健身${data.js}
+                乾元丹${data.qyd} 潜能果${data.qng} 机缘${data.jiYuan}
+
+                请分析该角色的优缺点、是否值得购买以及还价建议(200字以内)。`;
+
+                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [
+                            { role: 'system', content: '你是梦幻西游藏宝阁估价专家，擅长分析角色底子价值和市场行情。' },
+                            { role: 'user', content: prompt },
+                        ],
+                        max_tokens: 500,
+                        temperature: 0.7,
+                    }),
+                });
+
+                const result = await response.json();
+                const aiReply = result.choices?.[0]?.message?.content || 'API 返回为空';
+                alert('【DeepSeek AI 分析】\n\n' + aiReply);
+            } catch (err) {
+                alert('API 调用失败: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🤖 启动 AI 分析 (需配置 API Key)';
+            }
+            */
+        }
+
+        // ============ INIT ============
+        updateExchangeRate();
+        onLevelChange();
+    </script>
+</body>
+</html>
