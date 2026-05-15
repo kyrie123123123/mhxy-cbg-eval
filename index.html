@@ -42,27 +42,13 @@
             box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
         }
         .score-green  { background: linear-gradient(135deg, #059669, #10b981); }
+        .score-teal   { background: linear-gradient(135deg, #0284c7, #06b6d4); }
         .score-yellow { background: linear-gradient(135deg, #d97706, #f59e0b); }
         .score-red    { background: linear-gradient(135deg, #dc2626, #ef4444); }
         .section-card { background: #2a2a3e; border-radius: 1rem; padding: 1.5rem; border: 1px solid #3a3a52; }
         .section-title { font-size: 0.875rem; font-weight: 600; color: #6366f1; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
         input[type=range] { width: 100%; height: 6px; border-radius: 3px; background: #3a3a52; outline: none; }
         input[type=range]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #6366f1; cursor: pointer; }
-        .toggle-box { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-        .toggle-box input[type=checkbox] { display: none; }
-        .toggle-indicator {
-            width: 20px; height: 20px; border-radius: 0.3rem; border: 2px solid #3a3a52;
-            background: #2a2a3e; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s; flex-shrink: 0;
-        }
-        .toggle-box input[type=checkbox]:checked + .toggle-indicator {
-            background: #6366f1; border-color: #6366f1;
-        }
-        .toggle-indicator::after {
-            content: '✓'; color: white; font-size: 12px; font-weight: bold;
-            opacity: 0; transition: opacity 0.2s;
-        }
-        .toggle-box input[type=checkbox]:checked + .toggle-indicator::after { opacity: 1; }
     </style>
 </head>
 <body class="min-h-screen py-6 px-4">
@@ -103,10 +89,12 @@
                 <!-- 师门技能 -->
                 <div class="section-card">
                     <div class="section-title">师门技能</div>
-                    <div class="space-y-3">
+
+                    <!-- 109 级 -->
+                    <div id="skillGroup109" class="space-y-3">
                         <div>
                             <label class="block text-sm text-muted mb-1">
-                                主技能等级 <span class="text-xs text-primary" id="skillMaxLabel">(上限 119)</span>
+                                主技能等级 <span class="text-xs text-primary">(上限 119)</span>
                             </label>
                             <input type="number" id="skillLevel" placeholder="119" value="119" min="0">
                         </div>
@@ -122,6 +110,42 @@
                                 <option value="6" selected>6 个</option>
                                 <option value="7">7 个</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <!-- 129 级 -->
+                    <div id="skillGroup129" class="space-y-3" style="display:none;">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm text-muted mb-1">
+                                    技能150数量
+                                </label>
+                                <select id="skills150">
+                                    <option value="0">0 个</option>
+                                    <option value="1">1 个</option>
+                                    <option value="2">2 个</option>
+                                    <option value="3">3 个</option>
+                                    <option value="4">4 个</option>
+                                    <option value="5">5 个</option>
+                                    <option value="6" selected>6 个</option>
+                                    <option value="7">7 个</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-muted mb-1">
+                                    技能130数量
+                                </label>
+                                <select id="skills130">
+                                    <option value="0">0 个</option>
+                                    <option value="1" selected>1 个</option>
+                                    <option value="2">2 个</option>
+                                    <option value="3">3 个</option>
+                                    <option value="4">4 个</option>
+                                    <option value="5">5 个</option>
+                                    <option value="6">6 个</option>
+                                    <option value="7">7 个</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -172,9 +196,9 @@
                     </div>
                 </div>
 
-                <!-- 辅助技能 (6项, 0-140) -->
+                <!-- 辅助技能 (7项, 0-140) -->
                 <div class="section-card">
-                    <div class="section-title">辅助技能 <span class="text-xs text-muted">(0-140 每项满级 = 2000万 MHB)</span></div>
+                    <div class="section-title">辅助技能</div>
                     <div class="grid grid-cols-2 gap-x-4 gap-y-2">
                         <div class="flex items-center gap-2">
                             <label class="text-sm text-muted w-16 shrink-0">强身</label>
@@ -206,10 +230,15 @@
                             <input type="range" id="jianShen" min="0" max="140" value="60" oninput="updateSlider(this, 'jianShenVal')">
                             <span class="text-sm text-white w-10 text-right" id="jianShenVal">60</span>
                         </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-muted w-16 shrink-0">暗器</label>
+                            <input type="range" id="anQi" min="0" max="140" value="60" oninput="updateSlider(this, 'anQiVal')">
+                            <span class="text-sm text-white w-10 text-right" id="anQiVal">60</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 乾元丹 + 潜能果 + 月饼粽子机缘 -->
+                <!-- 乾元丹 + 月饼粽子机缘 + 限量锦衣祥瑞 -->
                 <div class="section-card">
                     <div class="section-title">其他</div>
                     <div class="grid grid-cols-3 gap-3">
@@ -218,14 +247,12 @@
                             <input type="number" id="qianYuanDan" value="4" min="0" max="9">
                         </div>
                         <div>
-                            <label class="block text-xs text-muted mb-1">
-                                潜能果 <span class="text-primary" id="qngMaxLabel">(上限 100)</span>
-                            </label>
-                            <input type="number" id="qianNengGuo" value="50" min="0">
-                        </div>
-                        <div>
                             <label class="block text-xs text-muted mb-1">月饼粽子机缘 (0-60)</label>
                             <input type="number" id="jiYuan" value="30" min="0" max="60">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-muted mb-1">限量锦衣祥瑞价值 (元)</label>
+                            <input type="number" id="jinYiXiangRui" value="0" min="0" step="100">
                         </div>
                     </div>
                 </div>
@@ -307,8 +334,8 @@
     <script>
         // ============ LEVEL PRESETS ============
         const levelConfig = {
-            109: { skillMax: 119, cultMax: 17, petMax: 17, qngMax: 100, skillTotalCost: 1284 },
-            129: { skillMax: 150, cultMax: 21, petMax: 25, qngMax: 100, skillTotalCost: 3864 },
+            109: { skillMax: 119, cultMax: 17, petMax: 17, skillTotalCost: 1284 },
+            129: { skillMax: 150, cultMax: 21, petMax: 25, skillTotalCost: 3864, skillCost130: 1954 },
         };
 
         // ============ SLIDER HELPER ============
@@ -320,12 +347,14 @@
         function onLevelChange() {
             const lv = document.getElementById('levelGroup').value;
             const cfg = levelConfig[lv];
-            document.getElementById('skillMaxLabel').textContent = `(上限 ${cfg.skillMax})`;
+
+            // Toggle school skill UI
+            document.getElementById('skillGroup109').style.display = (lv === '109') ? 'block' : 'none';
+            document.getElementById('skillGroup129').style.display = (lv === '129') ? 'block' : 'none';
+
+            document.getElementById('skillLevel').value = cfg.skillMax;
             document.getElementById('charCultMaxLabel').textContent = `(上限 ${cfg.cultMax})`;
             document.getElementById('petCultMaxLabel').textContent = `(上限 ${cfg.petMax})`;
-            document.getElementById('qngMaxLabel').textContent = `(上限 ${cfg.qngMax})`;
-            document.getElementById('qianNengGuo').max = cfg.qngMax;
-            document.getElementById('skillLevel').value = cfg.skillMax;
             document.getElementById('charAtk').value = cfg.cultMax;
             document.getElementById('charDef').value = cfg.cultMax;
             document.getElementById('charMDef').value = cfg.cultMax;
@@ -379,7 +408,6 @@
             const cfg = levelConfig[levelGroup];
             const maxLevel = cfg.skillMax;
             const targetTotal = cfg.skillTotalCost;
-            // Σ n² for current level / Σ n² for max level, scaled to target total
             let sumSqCurrent = 0, sumSqMax = 0;
             for (let n = 1; n <= level; n++) { sumSqCurrent += n * n; }
             for (let n = 1; n <= maxLevel; n++) { sumSqMax += n * n; }
@@ -412,6 +440,8 @@
             // Read all inputs
             const skillLevel  = parseInt(document.getElementById('skillLevel').value) || 0;
             const skillsAtCap = parseInt(document.getElementById('skillsAtCap').value) || 0;
+            const skills150   = parseInt(document.getElementById('skills150').value) || 0;
+            const skills130   = parseInt(document.getElementById('skills130').value) || 0;
             const charAtk     = parseInt(document.getElementById('charAtk').value) || 0;
             const charDef     = parseInt(document.getElementById('charDef').value) || 0;
             const charMDef    = parseInt(document.getElementById('charMDef').value) || 0;
@@ -425,12 +455,25 @@
             const pr           = parseInt(document.getElementById('pengRen').value) || 0;
             const ys           = parseInt(document.getElementById('yangSheng').value) || 0;
             const js           = parseInt(document.getElementById('jianShen').value) || 0;
+            const aq           = parseInt(document.getElementById('anQi').value) || 0;
             const qyd          = parseInt(document.getElementById('qianYuanDan').value) || 0;
-            const qng          = parseInt(document.getElementById('qianNengGuo').value) || 0;
             const jiYuan       = parseInt(document.getElementById('jiYuan').value) || 0;
+            const jinYi        = parseFloat(document.getElementById('jinYiXiangRui').value) || 0;
 
             // ============ MHB COSTS (万 MHB) ============
-            const costSkill    = calcSingleSkillCost(skillLevel, levelGroup) * Math.max(skillsAtCap, 1) / 2;
+
+            // School skills: different logic for 109 vs 129
+            let costSkill, skillBreakdownLabel;
+            if (levelGroup === '129') {
+                const cost150 = cfg.skillTotalCost * skills150;
+                const cost130 = cfg.skillCost130 * skills130;
+                costSkill = (cost150 + cost130) / 2;
+                skillBreakdownLabel = `师门技能 (150×${skills150}, 130×${skills130})`;
+            } else {
+                costSkill = calcSingleSkillCost(skillLevel, levelGroup) * Math.max(skillsAtCap, 1) / 2;
+                skillBreakdownLabel = `师门技能 (${skillLevel}级×${skillsAtCap}个)`;
+            }
+
             const costCharAtk  = calcCharAtkCost(charAtk) / 2;
             const costCharDef  = calcCharDefCost(charDef) / 2;
             const costCharMDef = calcCharDefCost(charMDef) / 2;
@@ -444,13 +487,15 @@
             const costPR       = calcLivingSkillCost(pr);
             const costYS       = calcLivingSkillCost(ys);
             const costJS       = calcLivingSkillCost(js);
+            const costAQ       = calcLivingSkillCost(aq);
             const costJY       = jiYuan * 100;
+            const costJinYi   = jinYi * exchangeRate;
 
             // Total MHB
             const totalMHB = costSkill + costCharAtk + costCharDef + costCharMDef
                            + costPetAtk + costPetDef + costPetMAtk + costPetMDef
-                           + costQS + costMX + costLY + costPR + costYS + costJS
-                           + costJY;
+                           + costQS + costMX + costLY + costPR + costYS + costJS + costAQ
+                           + costJY + costJinYi;
 
             // Convert to RMB
             const baseValueRMB = totalMHB / exchangeRate;
@@ -458,14 +503,17 @@
             // 性价比比值 = 底子 / 售价
             const ratio = accountPrice > 0 ? baseValueRMB / accountPrice : 0;
 
-            // Determine ratio tier
+            // Determine ratio tier (4-tier)
             let ratioClass, ratioText;
             if (ratio >= 1.2) {
                 ratioClass = 'score-green';
-                ratioText = '超值 — 底子价值远超售价，推荐购买';
-            } else if (ratio >= 0.8) {
+                ratioText = '超值 — 底子价值远超售价，强烈推荐购买';
+            } else if (ratio >= 1.0) {
+                ratioClass = 'score-teal';
+                ratioText = '较值 — 底子价值高于售价，推荐购买';
+            } else if (ratio >= 0.9) {
                 ratioClass = 'score-yellow';
-                ratioText = '合理 — 底子价值与售价基本匹配';
+                ratioText = '一般 — 底子价值略低于售价，可考虑还价';
             } else {
                 ratioClass = 'score-red';
                 ratioText = '溢价 — 售价显著高于底子价值，需谨慎';
@@ -485,11 +533,13 @@
             const ratioLabel = document.getElementById('ratioLabel');
             ratioLabel.textContent = ratioText;
             ratioLabel.className = ratio >= 1.2 ? 'text-xs text-green-400 font-semibold'
-                : ratio >= 0.8 ? 'text-xs text-yellow-400 font-semibold' : 'text-xs text-red-400 font-semibold';
+                : ratio >= 1.0 ? 'text-xs text-blue-400 font-semibold'
+                : ratio >= 0.9 ? 'text-xs text-yellow-400 font-semibold'
+                : 'text-xs text-red-400 font-semibold';
 
             // Breakdown items
             const breakdownItems = [
-                { label: '师门技能', cost: costSkill },
+                { label: skillBreakdownLabel, cost: costSkill },
                 { label: '人物攻修/法修', cost: costCharAtk },
                 { label: '人物防修', cost: costCharDef },
                 { label: '人物抗法', cost: costCharMDef },
@@ -503,7 +553,9 @@
                 { label: '烹饪', cost: costPR },
                 { label: '养生之道', cost: costYS },
                 { label: '健身术', cost: costJS },
+                { label: '暗器', cost: costAQ },
                 { label: '月饼粽子机缘', cost: costJY },
+                { label: '限量锦衣祥瑞', cost: costJinYi },
             ];
 
             document.getElementById('breakdown').innerHTML = breakdownItems
@@ -517,23 +569,17 @@
             // Store for DeepSeek
             window._lastCalcData = {
                 levelGroup, accountPrice,
-                skillLevel, skillsAtCap,
+                skillLevel, skillsAtCap, skills150, skills130,
                 charAtk, charDef, charMDef,
                 petAtk, petDef, petMAtk, petMDef,
-                qs, mx, ly, pr, ys, js,
-                qyd, qng, jiYuan,
+                qs, mx, ly, pr, ys, js, aq,
+                qyd, jiYuan, jinYi,
                 totalMHB, baseValueRMB, ratio,
-                breakdownItems
+                breakdownItems, skillBreakdownLabel
             };
         }
 
-        // ============ DEEPSEEK PLACEHOLDER ============
-        /**
-         * analyzeWithDeepSeek() — 接入 DeepSeek API 进行深度评估
-         *
-         * 使用前请替换 DEEPSEEK_API_KEY 并取消注释 fetch 调用代码。
-         * API 文档: https://api.deepseek.com/v1/chat/completions
-         */
+        // ============ DEEPSEEK ============
         async function analyzeWithDeepSeek() {
             const data = window._lastCalcData;
 
@@ -562,7 +608,7 @@
                 btn.disabled = false;
                 btn.textContent = '🤖 启动 AI 分析 (需配置 API Key)';
 
-                const tier = data.ratio >= 1.2 ? '超值' : data.ratio >= 0.8 ? '合理' : '溢价';
+                const tier = data.ratio >= 1.2 ? '超值' : data.ratio >= 1.0 ? '较值' : data.ratio >= 0.9 ? '一般' : '溢价';
                 alert(
                     '【DeepSeek 模拟分析结果】\n\n' +
                     `角色等级: ${data.levelGroup} 级\n` +
@@ -570,65 +616,15 @@
                     `性价比比值: ${data.ratio.toFixed(2)} (${tier})\n\n` +
                     '💡 ' + (data.ratio >= 1.2
                         ? '该角色底子估值高于售价，性价比较高，建议关注装备和宝宝是否匹配。'
-                        : data.ratio >= 0.8
-                            ? '价格与底子价值基本匹配，可视装备情况适当还价。'
-                            : '售价明显高于底子价值，除非附带高价值装备或限量锦衣，否则不建议入手。') +
+                        : data.ratio >= 1.0
+                            ? '该角色底子估值略高于售价，性价比不错，可视装备情况入手。'
+                            : data.ratio >= 0.9
+                                ? '价格与底子价值基本持平或略高，建议适当还价，关注附加价值。'
+                                : '售价明显高于底子价值，除非附带高价值装备或限量锦衣，否则不建议入手。') +
                     '\n\n实际使用时请接入 DeepSeek API 以获得更详细的分析。'
                 );
                 return;
             }
-
-            // === 真实 API 调用 (取消下方注释以启用) ===
-            /*
-            const btn = document.getElementById('deepseekBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ AI 分析中...';
-
-            try {
-                const itemsSummary = data.breakdownItems.map(i =>
-                    `${i.label}: ${i.cost.toFixed(0)}万`
-                ).join(', ');
-
-                const prompt = `请评估这个梦幻西游${data.levelGroup}级角色的性价比：
-                售价: ${data.accountPrice}元
-                底子总值: ¥${data.baseValueRMB.toFixed(0)} (${data.totalMHB.toFixed(0)} 万MHB)
-                性价比比值: ${data.ratio.toFixed(2)}
-                各分项估值: ${itemsSummary}
-                修炼: 攻/法${data.charAtk}, 防${data.charDef}, 抗法${data.charMDef}
-                宠修: 攻${data.petAtk}, 防${data.petDef}, 法${data.petMAtk}, 抗法${data.petMDef}
-                技能: ${data.skillLevel}级 × ${data.skillsAtCap}个
-                辅助: 强身${data.qs} 冥想${data.mx} 炼药${data.ly} 烹饪${data.pr} 养生${data.ys} 健身${data.js}
-                乾元丹${data.qyd} 潜能果${data.qng} 机缘${data.jiYuan}
-
-                请分析该角色的优缺点、是否值得购买以及还价建议(200字以内)。`;
-
-                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        model: 'deepseek-chat',
-                        messages: [
-                            { role: 'system', content: '你是梦幻西游藏宝阁估价专家，擅长分析角色底子价值和市场行情。' },
-                            { role: 'user', content: prompt },
-                        ],
-                        max_tokens: 500,
-                        temperature: 0.7,
-                    }),
-                });
-
-                const result = await response.json();
-                const aiReply = result.choices?.[0]?.message?.content || 'API 返回为空';
-                alert('【DeepSeek AI 分析】\n\n' + aiReply);
-            } catch (err) {
-                alert('API 调用失败: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '🤖 启动 AI 分析 (需配置 API Key)';
-            }
-            */
         }
 
         // ============ INIT ============
